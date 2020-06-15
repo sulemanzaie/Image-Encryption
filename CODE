@@ -1,0 +1,149 @@
+clc
+clear all
+close all
+pic=imread('C:\\Users\\Public\\Pictures\\Sample Pictures\\nike.jpg');
+pivt=13;
+m=0;
+k=input('give k for involutory ');
+while(pivt>6)
+ m=input('give number of m ');
+if(mod(m,2)~=0)
+    disp('m must be even');
+else 
+    pivt=0;
+end                           
+end
+piv=13;
+while(piv>6)
+ru=1 + (1+256)*rand(m/2,m/2);
+A22=ru;
+A11=mod(-A22,256);
+I=eye(m/2);
+A12=mod(k*(I-A11),256);
+r=1/k;
+A21=uint8(mod(r*(I+A11),256));
+A=cat(2,A11,A12);
+B=cat(2,A21,A22);
+C=cat(1,A,B);
+C=double(C);
+d=det(C)
+adjic=d*inv(C);
+minv=multinverse(d,256);
+if(minv==0)
+    disp('processing');
+else 
+    piv=0;
+end
+end
+S=admat(adjic,256);
+iC=minv.*S;
+iC=mod(iC,256);
+arencr=[];
+ardecr=[];
+for count=1:4
+    if count==4
+       gray=rgb2gray(pic);
+    else 
+        gray=pic(:,:,count);
+    end
+[a b]=size(gray);
+num=0;
+if(b>a)
+   ima=gray(1:a,1:a);
+   num=a;
+else
+    ima=gray(1:b,1:b);
+    num=b;
+end
+encr=[];
+z=1;
+r=0;c=0;
+for i=1:num/m
+    for j=1:num/m
+        rstart=r+1;
+        rend=r+m;
+        cstart=c+1;
+        cend =c+m;
+%         fprintf('row start %d\n end %d\n col start at %d\n end at %d\n\n\n',rstart,rend,cstart,cend);
+%         input('enter');
+       c=c+m; 
+%        if(m>=6)
+%            encr(rstart:rend,cstart:cend)=mod(C*double(ima(rstart:rend,cstart:cend)),256);
+%        else
+   encr(rstart:rend,cstart:cend)=mod(C*(mod(C*double(ima(rstart:rend,cstart:cend)),256)'),256);
+%        end
+%    if(z==1)
+%       fprintf('encr is \n');
+%       disp(ima(rstart:rend,cstart:cend));
+%       disp(encr(rstart:rend,cstart:cend));
+%    input('enter');
+%    end
+   z=z+1;
+    end
+    r=r+m;
+    c=0;
+end
+arencr(:,:,count)=encr(:,:);
+decr=[];
+z=1;
+r=0;c=0;
+for i=1:num/m
+    for j=1:num/m
+        rstart=r+1;
+        rend=r+m;
+        cstart=c+1;
+        cend =c+m;
+%         fprintf('row start %d\n end %d\n col start at %d\n end at %d\n\n\n',rstart,rend,cstart,cend);
+%         input('enter');
+         c=c+m; 
+%        if(m>=6)
+% decr(rstart:rend,cstart:cend)=mod(iC*double(encr(rstart:rend,cstart:cend)),256);
+%        else
+           decr(rstart:rend,cstart:cend)=mod(iC*(mod(iC*double(encr(rstart:rend,cstart:cend)),256)'),256);
+%        end
+for usama=rstart:rend
+    for umair=cstart:cend
+        if(decr(usama,umair)>255)
+            decr(usama,umair)=0;
+        end
+    end
+end
+%    if(z==1)
+%       fprintf('decr is \n');
+%       disp(uint8(decr(rstart:rend,cstart:cend)));
+%    input('enter');
+%    end
+z=z+1;
+    end
+    r=r+m;
+    c=0;
+end
+ardecr(:,:,count)=decr(:,:);
+end
+
+X=cat(3,arencr(:,:,1),arencr(:,:,2),arencr(:,:,3));
+Y=cat(3,ardecr(:,:,1),ardecr(:,:,2),ardecr(:,:,3));
+
+subplot(2,3,1)
+imshow(pic(1:num,1:num,1:3));
+title('orignal')
+
+subplot(2,3,2)
+imshow(uint8(X))
+title('encrypted image colored')
+
+subplot(2,3,3)
+imshow(uint8(Y))
+title('decrypted image colored')
+
+subplot(2,3,4)
+imshow(ima);
+title('orignal gray')
+
+subplot(2,3,5)
+imshow(uint8(arencr(:,:,4)));
+title('encrypted image gray')
+
+subplot(2,3,6)
+imshow(uint8(ardecr(:,:,4)));
+title('decrypted image gray')o
